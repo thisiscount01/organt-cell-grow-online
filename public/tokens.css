@@ -1,0 +1,175 @@
+/* ============================================================
+ * tokens.css — 디자인 토큰 단일 출처 (CSS 변수)
+ * cell-grow-online
+ *
+ * 소유/네임스페이스 규약:
+ *   --brand-*  : 공유 원천색 (UI/아트 공통). 변경은 합의로만.
+ *   --ui-*     : DOM UI 색 — 디자이너 소유.
+ *   --art-*    : 캔버스 아트 색(세포/배경/먹이/바이러스/파티클).
+ *                여기엔 "참조용"으로 미러링하되, 캔버스(ctx)는 CSS 변수를
+ *                읽지 못하므로 실제 사용 값은 tokens.js 에서 가져간다.
+ *   비색상 토큰(space/font/text/radius/z/shadow) : 디자이너 소유, UI 공통.
+ *
+ * ⚠ tokens.js 와 키명·값을 1:1 동기화할 것 (수기 동기화).
+ * ============================================================ */
+
+:root {
+  /* ---------- BRAND (shared source) ---------- */
+  --brand-primary:        #2de2c0;   /* aqua — 메인 */
+  --brand-primary-dim:    #1f9e8a;
+  --brand-accent:         #ff5fa2;   /* magenta — 강조 */
+  --brand-accent-dim:     #c2467b;
+  --brand-danger:         #ff4d4d;   /* 위험/사망 */
+  --brand-warning:        #ffc24b;   /* 경고 */
+  --brand-success:        #5cff9d;
+  --brand-ink:            #07121a;   /* 가장 깊은 배경 */
+  --brand-ink-2:          #0d1f2b;
+  --brand-paper:          #eaf6ff;   /* 밝은 글자색 원천 */
+
+  /* ---------- UI: 표면/배경 ---------- */
+  --ui-bg-scrim:          rgba(4, 12, 18, 0.72);   /* 시작/사망 화면 딤 */
+  --ui-panel-bg:          rgba(10, 26, 36, 0.78);
+  --ui-panel-bg-solid:    #0c2230;
+  --ui-panel-border:      rgba(45, 226, 192, 0.28);
+  --ui-panel-border-2:    rgba(255, 255, 255, 0.08);
+
+  /* ---------- UI: 텍스트 ---------- */
+  --ui-text-primary:      #eaf6ff;
+  --ui-text-secondary:    #9fc3d4;
+  --ui-text-muted:        #5e8195;
+  --ui-text-on-accent:    #07121a;   /* 밝은 버튼 위 글자 */
+  --ui-text-danger:       #ff8a8a;
+
+  /* ---------- UI: 버튼 (6상태) ---------- */
+  --ui-btn-fill:          var(--brand-primary);
+  --ui-btn-fill-hover:    #46f0d0;
+  --ui-btn-fill-active:   #1fc7ab;
+  --ui-btn-fill-disabled: #2b4a52;
+  --ui-btn-text:          var(--brand-ink);
+  --ui-btn-text-disabled: #6f8b94;
+  --ui-btn-glow:          rgba(45, 226, 192, 0.45);
+
+  --ui-btn2-fill:         transparent;             /* 보조 버튼 */
+  --ui-btn2-border:       rgba(45, 226, 192, 0.55);
+  --ui-btn2-text:         var(--brand-primary);
+  --ui-btn2-fill-hover:   rgba(45, 226, 192, 0.12);
+
+  /* ---------- UI: 입력 ---------- */
+  --ui-input-bg:          rgba(3, 12, 18, 0.65);
+  --ui-input-border:      rgba(159, 195, 212, 0.35);
+  --ui-input-border-focus:var(--brand-primary);
+  --ui-input-border-error:var(--brand-danger);
+  --ui-input-text:        var(--ui-text-primary);
+  --ui-input-placeholder: var(--ui-text-muted);
+
+  /* ---------- UI: HUD / 리더보드 / 미니맵 ---------- */
+  --ui-hud-bg:            rgba(7, 18, 26, 0.55);
+  --ui-hud-accent:        var(--brand-primary);
+  --ui-rank-1:            #ffd95c;   /* 금 */
+  --ui-rank-2:            #d6e4ee;   /* 은 */
+  --ui-rank-3:            #e3a36b;   /* 동 */
+  --ui-rank-self:         var(--brand-accent);   /* 내 행 강조 */
+
+  --ui-minimap-bg:        rgba(4, 12, 18, 0.6);
+  --ui-minimap-border:    rgba(45, 226, 192, 0.4);
+  --ui-minimap-size:      200px;     /* px 정수 — 프론트가 DPR 보정에 사용 */
+  --ui-minimap-self:      var(--brand-accent);
+  --ui-minimap-view:      rgba(234, 246, 255, 0.25);
+
+  /* ---------- UI: 상태색 ---------- */
+  --ui-warning:           var(--brand-warning);
+  --ui-danger:            var(--brand-danger);
+  --ui-skill-ready:       var(--brand-success);
+  --ui-skill-cooldown:    rgba(4, 12, 18, 0.66);
+  --ui-net-bad:           var(--brand-warning);
+  --ui-warning-glow:      rgba(255, 194, 75, 0.5);
+
+  /* 포커스 링 / 화면 글로우 */
+  --ui-focus-ring:        rgba(45, 226, 192, 0.2);
+  --ui-focus-ring-error:  rgba(255, 77, 77, 0.18);
+  --ui-screen-glow:       rgba(45, 226, 192, 0.08);
+
+  /* ---------- ART (참조용 미러 — 실사용은 tokens.js) ---------- */
+  /* 배경/월드 */
+  --art-bg-deep:          #07121a;
+  --art-bg-grid:          rgba(120, 200, 220, 0.06);
+  --art-bg-grid-major:    rgba(120, 200, 220, 0.10);
+  --art-world-border:     rgba(255, 95, 162, 0.45);
+  /* 먹이 (다채) */
+  --art-food-1:           #ff6b6b;
+  --art-food-2:           #ffd93d;
+  --art-food-3:           #6bff95;
+  --art-food-4:           #5cc8ff;
+  --art-food-5:           #c08bff;
+  /* 플레이어 세포 등급 팔레트 */
+  --art-cell-self:        #2de2c0;
+  --art-cell-self-core:   #aef9ec;
+  /* 봇 세포(소속별 hue 변주) */
+  --art-cell-bot-1:       #ff5fa2;
+  --art-cell-bot-2:       #ffa14b;
+  --art-cell-bot-3:       #7c6bff;
+  --art-cell-bot-4:       #4bd0ff;
+  --art-cell-bot-5:       #9bff5c;
+  --art-cell-bot-6:       #ff7bd5;
+  /* 세포 디테일 */
+  --art-cell-membrane:    rgba(255, 255, 255, 0.55);
+  --art-cell-nucleus:     rgba(7, 18, 26, 0.55);
+  --art-cell-organelle:   rgba(255, 255, 255, 0.18);
+  /* 바이러스(지뢰) */
+  --art-virus-fill:       #4cff7a;
+  --art-virus-spike:      #1f7a3c;
+  --art-virus-glow:       rgba(76, 255, 122, 0.55);
+  --art-virus-shot:       #aaff5c;   /* 분열탄 */
+  /* 위험/경고 아트 */
+  --art-danger:           #ff4d4d;
+  --art-eject:            #ffe08a;    /* W로 뿌린 먹이 */
+
+  /* ---------- SPACING ---------- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+
+  /* ---------- RADIUS ---------- */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
+
+  /* ---------- TYPOGRAPHY ---------- */
+  --font-sans: "Pretendard", "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+  --text-xs:   12px;
+  --text-sm:   14px;
+  --text-md:   16px;
+  --text-lg:   20px;
+  --text-xl:   28px;
+  --text-2xl:  40px;
+  --text-3xl:  64px;
+  --font-w-reg: 400;
+  --font-w-med: 600;
+  --font-w-bold: 800;
+  --leading-tight: 1.1;
+  --leading-normal: 1.45;
+
+  /* ---------- SHADOW / GLOW ---------- */
+  --shadow-panel: 0 12px 40px rgba(0, 0, 0, 0.45);
+  --shadow-soft:  0 4px 16px rgba(0, 0, 0, 0.35);
+  --glow-primary: 0 0 18px var(--ui-btn-glow);
+  --glow-accent:  0 0 18px rgba(255, 95, 162, 0.5);
+
+  /* ---------- Z-ORDER (배경→세포→이펙트→UI) ---------- */
+  --z-canvas:    0;
+  --z-overlay:   10;   /* #ui-root */
+  --z-hud:       12;
+  --z-screen:    30;   /* 시작/사망 풀스크린 */
+  --z-net:       40;   /* 연결상태 토스트 */
+
+  /* ---------- MOTION ---------- */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-fast: 120ms;
+  --dur-med:  220ms;
+}

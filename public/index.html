@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <meta name="theme-color" content="#07121a" />
+  <title>Cell Grow Online</title>
+  <!-- 토큰 단일 출처 → UI 스타일 순서 (디자이너 소유) -->
+  <link rel="stylesheet" href="tokens.css" />
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- ============================================================
+       file:// 가드 (프론트엔드 소유) — 모듈과 독립인 '클래식' 인라인 스크립트.
+       app.js 등 type="module" 은 file:// 에서 CORS 로 로드 자체가 차단되어
+       그 안의 어떤 가드도 실행되지 않는다. 그래서 이 가드는 module 밖에서,
+       style.css 에도 의존하지 않는 자급자족 인라인 스타일로 안내를 띄운다.
+       → 빈 캔버스 대신 "http 로 여세요" 안내가 반드시 표시된다.
+       ============================================================ -->
+  <script>
+  (function () {
+    if (location.protocol !== 'file:') return;
+    document.title = 'HTTP로 여세요 — Cell Grow';
+    var build = function () {
+      if (document.getElementById('file-warning')) return;
+      var html = document.documentElement;
+      if (html) html.style.background = '#07121a';
+      var o = document.createElement('div');
+      o.id = 'file-warning';
+      o.setAttribute('role', 'alert');
+      o.style.cssText = [
+        'position:fixed', 'inset:0', 'z-index:99999', 'display:flex',
+        'align-items:center', 'justify-content:center', 'padding:24px',
+        'background:radial-gradient(120% 120% at 50% 0%, rgba(45,226,192,0.10), transparent 60%), #07121a',
+        'font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif',
+        'color:#eaf6ff', '-webkit-font-smoothing:antialiased'
+      ].join(';');
+      o.innerHTML =
+        '<div style="width:min(460px,92vw);padding:36px 30px;text-align:center;' +
+          'background:#0d1f2b;border:1px solid rgba(45,226,192,0.25);border-radius:18px;' +
+          'box-shadow:0 24px 60px rgba(0,0,0,0.5)">' +
+          '<div style="font-size:13px;font-weight:700;letter-spacing:0.12em;' +
+            'color:#ffc24b;margin-bottom:14px">⚠ 로컬 파일로 열림</div>' +
+          '<h1 style="margin:0 0 10px;font-size:26px;font-weight:800;line-height:1.2;' +
+            'background:linear-gradient(120deg,#2de2c0,#ff5fa2);-webkit-background-clip:text;' +
+            'background-clip:text;color:transparent">HTTP 서버로 여세요</h1>' +
+          '<p style="margin:0 0 22px;font-size:15px;line-height:1.5;color:rgba(234,246,255,0.7)">' +
+            'Cell Grow 는 실시간 멀티플레이 서버가 필요합니다.<br>' +
+            '<code style="color:#ff8fbe">file://</code> 로는 동작하지 않아요.</p>' +
+          '<div style="text-align:left;background:#07121a;border:1px solid rgba(255,255,255,0.08);' +
+            'border-radius:12px;padding:16px 18px;font-size:14px;line-height:2">' +
+            '<div style="color:rgba(234,246,255,0.55);margin-bottom:6px;font-size:12px">터미널에서</div>' +
+            '<div><span style="color:#2de2c0">$</span> ' +
+              '<code style="color:#eaf6ff;font-size:14px">node server.js</code></div>' +
+            '<div style="color:rgba(234,246,255,0.55);margin:8px 0 6px;font-size:12px">그다음 브라우저에서</div>' +
+            '<div><a href="http://localhost:3000" ' +
+              'style="color:#2de2c0;text-decoration:none;font-weight:700;font-size:15px">' +
+              'http://localhost:3000</a> 접속</div>' +
+          '</div>' +
+        '</div>';
+      document.body.appendChild(o);
+    };
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', build);
+    } else {
+      build();
+    }
+  })();
+  </script>
+</head>
+<body>
+  <!-- 게임 렌더 캔버스 (프론트/비주얼 소유) -->
+  <canvas id="game"></canvas>
+
+  <!-- ============================================================
+       #ui-root : DOM UI 레이어 (디자이너 소유)
+       pointer-events:none — 캔버스 입력 통과. 버튼/입력만 auto.
+       값 갱신 hook(id/class)은 프론트와 합의된 계약.
+       ============================================================ -->
+  <div id="ui-root">
+
+    <!-- 인게임 HUD (좌상단) -->
+    <div id="hud">
+      <div class="ui-stat">
+        <span class="ui-stat__label">질량</span>
+        <span class="ui-stat__value" id="hud-mass">10</span>
+      </div>
+      <div class="ui-stat">
+        <span class="ui-stat__label">순위</span>
+        <span class="ui-stat__value" id="hud-rank">– / –</span>
+      </div>
+      <div class="ui-stat">
+        <span class="ui-stat__label">조각</span>
+        <span class="ui-stat__value" id="hud-cells">1</span>
+      </div>
+      <button class="ui-btn ui-skill" id="skill-boost" type="button">
+        <span class="ui-skill__cd" id="skill-boost-cd"></span>
+        <span class="ui-skill__label">부스트 <kbd>Shift</kbd></span>
+      </button>
+      <div class="ui-hints" id="hud-hints">마우스=이동 · Space=분열 · W=먹이뿌리기 · Shift=부스트</div>
+    </div>
+
+    <!-- 리더보드 (우상단) -->
+    <div id="leaderboard">
+      <p class="ui-lb__title">리더보드</p>
+      <ol id="lb-list">
+        <!-- JS가 ui-lb__row 템플릿으로 채움. 정적 예시 1행: -->
+        <li class="ui-lb__row" data-rank="1">
+          <span class="ui-lb__rank">1</span>
+          <span class="ui-lb__name">—</span>
+          <span class="ui-lb__mass">0</span>
+        </li>
+      </ol>
+    </div>
+
+    <!-- 미니맵 (우하단) -->
+    <div id="minimap">
+      <canvas id="minimap-canvas"></canvas>
+    </div>
+
+    <!-- 연결 상태 토스트 -->
+    <div id="net-status" class="is-hidden">재접속 중…</div>
+
+    <!-- 시작 화면 -->
+    <div id="screen-start" class="ui-screen">
+      <div class="ui-card">
+        <h1 class="ui-title">Cell Grow</h1>
+        <p class="ui-subtitle">먹고, 자라고, 분열하라. 지뢰를 키워 적을 터뜨려라.</p>
+        <div class="ui-field">
+          <input id="start-nick" class="ui-input" type="text" maxlength="16"
+                 placeholder="닉네임 입력" autocomplete="off" spellcheck="false" />
+          <span class="ui-error" id="start-error"></span>
+        </div>
+        <button class="ui-btn" id="start-play" type="button" style="width:100%">플레이</button>
+        <div class="ui-hintbar">
+          <span><kbd>마우스</kbd> 이동</span>
+          <span><kbd>Space</kbd> 분열</span>
+          <span><kbd>W</kbd> 먹이 뿌리기</span>
+          <span><kbd>Shift</kbd> 부스트</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 사망 / 리스폰 화면 -->
+    <div id="screen-dead" class="ui-screen is-hidden">
+      <div class="ui-card">
+        <h1 class="ui-title">먹혔습니다</h1>
+        <p class="ui-subtitle">다시 도전하세요.</p>
+        <div class="ui-deadstats">
+          <div class="ui-deadstat">
+            <span class="ui-deadstat__label">최종 질량</span>
+            <span class="ui-deadstat__value" id="dead-mass">0</span>
+          </div>
+          <div class="ui-deadstat">
+            <span class="ui-deadstat__label">최고 순위</span>
+            <span class="ui-deadstat__value" id="dead-rank">–</span>
+          </div>
+          <div class="ui-deadstat">
+            <span class="ui-deadstat__label">생존</span>
+            <span class="ui-deadstat__value" id="dead-time">0s</span>
+          </div>
+        </div>
+        <div class="ui-actions">
+          <button class="ui-btn" id="dead-respawn" type="button">다시 시작</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /#ui-root -->
+
+  <!-- 세포 아트 모듈 (게임 비주얼 디자이너 소유). app.js 보다 먼저 로드해
+       window.CellArt 를 등록한다. 모듈 스크립트는 선언 순서대로 실행된다. -->
+  <script type="module" src="cell-art.js"></script>
+  <!-- 이벤트 VFX 파티클 모듈 (VFX 전문가 소유). app.js 보다 먼저 로드해
+       window.VFX 를 등록한다. 부재 시 app.js 의 no-op 스텁이 콘솔에러 0 으로 폴백. -->
+  <script type="module" src="vfx.js"></script>
+  <!-- 게임 부트스트랩 (프론트엔드 소유). 없어도 UI는 렌더됨. -->
+  <script type="module" src="app.js"></script>
+</body>
+</html>

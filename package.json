@@ -1,0 +1,14 @@
+{
+  "name": "cell-grow-online",
+  "version": "1.0.0",
+  "description": "서버 권위 실시간 멀티플레이어 세포 성장 게임 (무의존 기동)",
+  "private": true,
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test-core.js && node test-net.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
